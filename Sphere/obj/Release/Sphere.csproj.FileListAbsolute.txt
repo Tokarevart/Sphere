@@ -1,0 +1,14 @@
+F:\Programming\Программы\C#\Sphere\Sphere\bin\Release\Sphere.exe.config
+F:\Programming\Программы\C#\Sphere\Sphere\bin\Release\Sphere.exe
+F:\Programming\Программы\C#\Sphere\Sphere\bin\Release\Sphere.pdb
+F:\Programming\Программы\C#\Sphere\Sphere\obj\Release\MainWindow.g.cs
+F:\Programming\Программы\C#\Sphere\Sphere\obj\Release\App.g.cs
+F:\Programming\Программы\C#\Sphere\Sphere\obj\Release\Sphere_MarkupCompile.cache
+F:\Programming\Программы\C#\Sphere\Sphere\obj\Release\Sphere_MarkupCompile.lref
+F:\Programming\Программы\C#\Sphere\Sphere\obj\Release\MainWindow.baml
+F:\Programming\Программы\C#\Sphere\Sphere\obj\Release\Sphere.g.resources
+F:\Programming\Программы\C#\Sphere\Sphere\obj\Release\Sphere.Properties.Resources.resources
+F:\Programming\Программы\C#\Sphere\Sphere\obj\Release\Sphere.csproj.GenerateResource.Cache
+F:\Programming\Программы\C#\Sphere\Sphere\obj\Release\Sphere.exe
+F:\Programming\Программы\C#\Sphere\Sphere\obj\Release\Sphere.pdb
+F:\Programming\Программы\C#\Sphere\Sphere\obj\Release\Sphere.csprojResolveAssemblyReference.cache
