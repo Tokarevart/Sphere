@@ -11,4 +11,3 @@ F:\Programming\Программы\C#\Sphere\Sphere\obj\Release\Sphere.Properties
 F:\Programming\Программы\C#\Sphere\Sphere\obj\Release\Sphere.csproj.GenerateResource.Cache
 F:\Programming\Программы\C#\Sphere\Sphere\obj\Release\Sphere.exe
 F:\Programming\Программы\C#\Sphere\Sphere\obj\Release\Sphere.pdb
-F:\Programming\Программы\C#\Sphere\Sphere\obj\Release\Sphere.csprojResolveAssemblyReference.cache

@@ -14,52 +14,59 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace Sphere
 {
     public partial class MainWindow : Window
     {
-        //public static Point3D[,] point;
-        //public static MeshGeometry3D mesh;
-        //public static DiffuseMaterial diffMat;
-        //public static GeometryModel3D geometry;
-        //public static ModelUIElement3D model;
-        //public static AxisAngleRotation3D axisAngRot3d;
-        //public static RotateTransform3D rotation;
+        public static AxisAngleRotation3D 
+            axisAngRot3dHoriz, axisAngRot3dVert, axisAngRot3dDiag, 
+            camAxisAngRot3dHoriz, camAxisAngRot3dVert;
+        public static RotateTransform3D rotationHoriz, rotationVert, rotationDiag;
+        public static Transform3DGroup trans3dGroup = new Transform3DGroup();
+        public static Point P0, P1;
+        public static DispatcherTimer
+            autoRotationTimer =
+            new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(10) },
+            autoChangeVertNumTimer =
+            new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(10) };
+        public static bool isInitialized = false;
         public static int N, n;
-        public static double R = 1.5;
-        //public static double startTime, angle;
-        //public static double[] r;
+        public static double 
+            R = 1.5,
+            dVertNumSliderValue = 1;
 
         public MainWindow()
         {
             InitializeComponent();
-            //slider.Visibility = Visibility.Hidden;
-            //slider.Value++;
-            slider.Value--;
-            //startTime = DateTime.Now.Millisecond + DateTime.Now.Second * 1000
-            //        + DateTime.Now.Minute * 60000 + DateTime.Now.Hour * 3600000;
-        }
+            isInitialized = true;
 
-        private void checkBox_Click(object sender, RoutedEventArgs e)
-        {
-            if (checkBox.IsChecked.Value)
-            {
-                
-            }
-            else
-            {
-                
-            }
-        }
 
-        private void slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            N = (int)slider.Value;
-            n = (int)slider.Value + 2;
-            vp3d.Children.Clear();
-            //angle = (DateTime.Now.Millisecond + DateTime.Now.Second * 1000
-            //    + DateTime.Now.Minute * 60000 + DateTime.Now.Hour * 3600000 - startTime) * 0.072;
+            DirectionalLight dLight = new DirectionalLight()
+            {
+                Color = Colors.White,
+                Direction = new Vector3D(0, -1, -1)
+            };
+
+            ModelVisual3D mv3d = new ModelVisual3D()
+            {
+                Content = dLight
+            };
+            vp3d.Children.Add(mv3d);
+
+
+            axisAngRot3dHoriz = new AxisAngleRotation3D(new Vector3D(0, 1, 0), 0);
+            rotationHoriz = new RotateTransform3D(axisAngRot3dHoriz);
+
+            axisAngRot3dVert = new AxisAngleRotation3D(new Vector3D(1, 0, 0), 0);
+            rotationVert = new RotateTransform3D(axisAngRot3dVert);
+
+            axisAngRot3dDiag = new AxisAngleRotation3D(new Vector3D(0, 0, 1), 0);
+            rotationDiag = new RotateTransform3D(axisAngRot3dDiag);
+            
+            trans3dGroup.Children = new Transform3DCollection() { rotationHoriz, rotationVert, rotationDiag };
+
 
             vp3d.Camera = new PerspectiveCamera()
             {
@@ -69,50 +76,119 @@ namespace Sphere
                 FieldOfView = 60
             };
 
-            DirectionalLight dLight = new DirectionalLight()
+            camAxisAngRot3dHoriz = new AxisAngleRotation3D(new Vector3D(0, 1, 0), 0);
+            RotateTransform3D camRotationHoriz = new RotateTransform3D(camAxisAngRot3dHoriz);
+
+            camAxisAngRot3dVert = new AxisAngleRotation3D(new Vector3D(1, 0, 0), 0);
+            RotateTransform3D camRotationVert = new RotateTransform3D(camAxisAngRot3dVert);
+
+            Transform3DGroup camTrans3dGroup = new Transform3DGroup();
+            camTrans3dGroup.Children = new Transform3DCollection() { camRotationHoriz, camRotationVert };
+
+            vp3d.Camera.Transform = camTrans3dGroup;
+
+
+            autoRotationTimer.Tick += (o, e) =>
             {
-                Color = Colors.White,
-                Direction = new Vector3D(0, -1, -1)
+                if (!autoRotationCheckBox.IsChecked.Value)
+                    autoRotationTimer.Stop();
+
+                axisAngRot3dHoriz.Angle += 1;
+                axisAngRot3dVert.Angle += 1;
             };
 
-            AxisAngleRotation3D axisAngRot3d = new AxisAngleRotation3D(new Vector3D(1, 1, 1), 0);
-            RotateTransform3D rotation = new RotateTransform3D(axisAngRot3d);
-            //BindingOperations.SetBinding(axisAngRot3d, AxisAngleRotation3D.AngleProperty, new Binding("Value") { Source = slider });
-            //rotation.Rotation.BeginAnimation(AxisAngleRotation3D.AngleProperty,
-            //    new DoubleAnimation()
-            //    {
-            //        From = 0,
-            //        To = 360,
-            //        Duration = new Duration(TimeSpan.FromSeconds(5)),
-            //        RepeatBehavior = RepeatBehavior.Forever
-            //    });
 
-            DoubleAnimation animation = new DoubleAnimation()
+            autoChangeVertNumTimer.Tick += (o, e) =>
             {
-                From = 0,
-                To = 360,
-                Duration = new Duration(TimeSpan.FromSeconds(5))
-                //RepeatBehavior = RepeatBehavior.Forever
+                if (!autoChangeVertNumCheckBox.IsChecked.Value)
+                    autoChangeVertNumTimer.Stop();
+
+                if (vertNumSlider.Value >= vertNumSlider.Maximum - 0.005 ||
+                    vertNumSlider.Value <= vertNumSlider.Minimum + 0.005)
+                    dVertNumSliderValue *= -1;
+
+                vertNumSlider.Value += dVertNumSliderValue / 10;
             };
+
             
-            Storyboard storyboard = new Storyboard()
+            vertNumSlider.Value--;
+            dVertNumSliderValue = changeVertNumVelSlider.Value;
+        }
+
+        private void helpButton_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show(
+                "Перетаскивайте курсор мыши с зажатой лековой кнопкой мыши, чтобы вращать сферу.\n" +
+                "С зажатой правой кнопкой мыши - чтобы вращать камеру вокруг сферы.");
+        }
+
+        private void autoRotationCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            autoRotationTimer.Start();
+        }
+        
+        private void autoChangeVertNumCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            autoChangeVertNumTimer.Start();
+        }
+
+        private void mainWindow_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (Mouse.GetPosition(mainWindow).Y >= 100)
             {
-                Duration = new Duration(TimeSpan.FromSeconds(5)),
-                RepeatBehavior = RepeatBehavior.Forever
-            };
-            storyboard.Children.Add(animation);
+                P0 = Mouse.GetPosition(mainWindow);
+                mainWindow.Cursor = Cursors.SizeAll;
+            }
+        }
 
-            Storyboard.SetTarget(animation, axisAngRot3d);
-            Storyboard.SetTargetProperty(animation, new PropertyPath(AxisAngleRotation3D.AngleProperty));
-
-            storyboard.Begin();
+        private void mainWindow_MouseMove(object sender, MouseEventArgs e)
+        {
+            P1 = Mouse.GetPosition(mainWindow);
             
-            ModelVisual3D mv3d = new ModelVisual3D();
-            mv3d.Content = dLight;
-            vp3d.Children.Add(mv3d);
+            if (Mouse.LeftButton == MouseButtonState.Pressed && 
+                P1.Y >= 100)
+            {
+                axisAngRot3dHoriz.Angle += P1.X - P0.X;
+                axisAngRot3dVert.Angle += P1.Y - P0.Y;
+            }
+            else if (Mouse.RightButton == MouseButtonState.Pressed &&
+                P1.Y >= 100)
+            {
+                camAxisAngRot3dHoriz.Angle -= P1.X - P0.X;
+                camAxisAngRot3dVert.Angle -= P1.Y - P0.Y;
+            }
 
+            P0 = P1;
+        }
+
+        private void mainWindow_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            mainWindow.Cursor = Cursors.Arrow;
+        }
+
+        private void changeVertNumVelSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            dVertNumSliderValue = Math.Sign(dVertNumSliderValue) * changeVertNumVelSlider.Value;
+        }
+
+        private void vertNumSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (!isInitialized)
+                return;
+
+            N = (int)vertNumSlider.Value;
+            n = (int)vertNumSlider.Value + 2;
+            if (vp3d.Children.Count == 2)
+                vp3d.Children.RemoveAt(1);
+
+            AddSphere();
+        }
+
+        private void AddSphere()
+        {
             double[] r = new double[N + 1];
-            for (int i = 1; i < N + 1; i++) r[i] = R * Math.Cos(Math.PI / 2 - i * Math.PI / (N + 1));
+            for (int i = 1; i < N + 1; i++)
+                r[i] = R * Math.Cos(Math.PI / 2 - i * Math.PI / (N + 1));
 
             Point3D[,] point = new Point3D[N + 2, n];
             point[N + 1, 0].Offset(0, -R, 0);
@@ -121,8 +197,10 @@ namespace Sphere
             {
                 for (int j = 0; j < n; j++)
                 {
-                    point[i, j].Offset(-r[i] * Math.Sin(2 * Math.PI / n * j),
-                        R * Math.Sin(Math.PI / 2 - i * Math.PI / (N + 1)), r[i] * Math.Cos(2 * Math.PI / n * j));
+                    point[i, j].Offset(
+                        -r[i] * Math.Sin(2 * Math.PI / n * j),
+                        R * Math.Sin(Math.PI / 2 - i * Math.PI / (N + 1)),
+                        r[i] * Math.Cos(2 * Math.PI / n * j));
                 }
             }
 
@@ -144,43 +222,35 @@ namespace Sphere
             }
             for (int i = 1; i < N; i++)
             {
-                for (int k = 1; k < 3; k++)
+                for (int j = 0; j < n; j++)
                 {
-                    if (k % 2 == 1)
+                    if (j == n - 1)
                     {
-                        for (int j = 0; j < n; j++)
-                        {
-                            if (j == n - 1)
-                            {
-                                mesh.Positions.Add(point[i, j]);
-                                mesh.Positions.Add(point[i, 0]);
-                                mesh.Positions.Add(point[i + 1, 0]);
-                            }
-                            else
-                            {
-                                mesh.Positions.Add(point[i, j]);
-                                mesh.Positions.Add(point[i, j + 1]);
-                                mesh.Positions.Add(point[i + 1, j + 1]);
-                            }
-                        }
+                        mesh.Positions.Add(point[i, j]);
+                        mesh.Positions.Add(point[i, 0]);
+                        mesh.Positions.Add(point[i + 1, 0]);
                     }
                     else
                     {
-                        for (int j = 0; j < n; j++)
-                        {
-                            if (j == n - 1)
-                            {
-                                mesh.Positions.Add(point[i, j]);
-                                mesh.Positions.Add(point[i + 1, 0]);
-                                mesh.Positions.Add(point[i + 1, j]);
-                            }
-                            else
-                            {
-                                mesh.Positions.Add(point[i, j]);
-                                mesh.Positions.Add(point[i + 1, j + 1]);
-                                mesh.Positions.Add(point[i + 1, j]);
-                            }
-                        }
+                        mesh.Positions.Add(point[i, j]);
+                        mesh.Positions.Add(point[i, j + 1]);
+                        mesh.Positions.Add(point[i + 1, j + 1]);
+                    }
+                }
+
+                for (int j = 0; j < n; j++)
+                {
+                    if (j == n - 1)
+                    {
+                        mesh.Positions.Add(point[i, j]);
+                        mesh.Positions.Add(point[i + 1, 0]);
+                        mesh.Positions.Add(point[i + 1, j]);
+                    }
+                    else
+                    {
+                        mesh.Positions.Add(point[i, j]);
+                        mesh.Positions.Add(point[i + 1, j + 1]);
+                        mesh.Positions.Add(point[i + 1, j]);
                     }
                 }
             }
@@ -199,17 +269,16 @@ namespace Sphere
                     mesh.Positions.Add(point[N + 1, 0]);
                 }
             }
-            for (int i = 0; i < 6 * N * n; i++) mesh.TriangleIndices.Add(i);
+            for (int i = 0, max = 6 * N * n; i < max; i++)
+                mesh.TriangleIndices.Add(i);
 
             DiffuseMaterial diffMat = new DiffuseMaterial(new SolidColorBrush(Colors.Tomato));
             GeometryModel3D geometry = new GeometryModel3D(mesh, diffMat);
-            geometry.Transform = rotation;
+            geometry.Transform = trans3dGroup;
             ModelUIElement3D model = new ModelUIElement3D();
             model.Model = geometry;
 
             vp3d.Children.Add(model);
-            //startTime = DateTime.Now.Millisecond + DateTime.Now.Second * 1000
-            //        + DateTime.Now.Minute * 60000 + DateTime.Now.Hour * 3600000;
         }
     }
 }
